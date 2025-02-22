@@ -37,7 +37,7 @@ router.get("/streak-svg/:username", async (req, res) => {
       await fetchContributions(username);
     const streakData = calculateStreak(weeks);
 
-    // Escape XML special characters in username
+
     const safeUsername = username
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
@@ -45,7 +45,7 @@ router.get("/streak-svg/:username", async (req, res) => {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&apos;");
 
-    // Enhanced color palette with gradients
+   
     const bgGradientStart = "#F8FAFD";
     const bgGradientEnd = "#F0F5FA";
     const textPrimaryColor = "#1A202C";
@@ -54,7 +54,7 @@ router.get("/streak-svg/:username", async (req, res) => {
     const borderColor = "#E2E8F0";
     const accentColor = "#3182CE";
 
-    // Enhanced rank colors with gradients
+
     const rankColors = {
       Beginner: ["#E6F6FF", "#BEE3F8"],
       Bronze: ["#FFFBEB", "#FBD38D"],
@@ -64,7 +64,7 @@ router.get("/streak-svg/:username", async (req, res) => {
       Diamond: ["#EBF8FF", "#90CDF4"],
     };
 
-    // Enhanced rank border colors
+
     const rankBorderColors = {
       Beginner: "#63B3ED",
       Bronze: "#ED8936",
@@ -74,7 +74,7 @@ router.get("/streak-svg/:username", async (req, res) => {
       Diamond: "#4299E1",
     };
 
-    // Get rank colors
+   
     const rankGradient =
       rankColors[streakData.ranking as keyof typeof rankColors] ||
       rankColors.Beginner;

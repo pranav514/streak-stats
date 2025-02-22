@@ -60,8 +60,7 @@ export const calculateStreak = (weeks: any) => {
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
     const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    
-    // For tracking earned badges
+
     const badges: { month: string; year: number }[] = [];
     const monthlyContributions: Map<string, number> = new Map();
     
@@ -73,7 +72,7 @@ export const calculateStreak = (weeks: any) => {
             lastDate = currentDate;
         }
         
-        // Track monthly contributions for badges
+ 
         const monthKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}`;
         if (contributionCount > 0) {
             const currentCount = monthlyContributions.get(monthKey) || 0;
@@ -94,7 +93,7 @@ export const calculateStreak = (weeks: any) => {
         lastDate = currentDate;
     }
     
-    // Check for earned badges (months with 30/31 day streaks)
+
     for (const [monthKey, count] of monthlyContributions.entries()) {
         const [year, month] = monthKey.split('-').map(Number);
         const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -105,7 +104,7 @@ export const calculateStreak = (weeks: any) => {
         }
     }
     
-    // Calculate ranking based on streak
+
     let ranking = '';
     if (currentStreak >= 365) {
         ranking = 'Diamond';
@@ -121,7 +120,7 @@ export const calculateStreak = (weeks: any) => {
         ranking = 'Beginner';
     }
     
-    // Calculate progress to next rank
+
     let progressToNextRank = 0;
     let nextRank = '';
     
