@@ -209,7 +209,11 @@ router.get("/streak-svg/:username", async (req, res) => {
         </text>
       </svg>
     `;
-
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    res.setHeader('Cache-Control', 'max-age=0, no-cache, no-store, must-revalidate');            
     res.setHeader("Content-Type", "image/svg+xml");
     res.send(svg);
   } catch (error) {
