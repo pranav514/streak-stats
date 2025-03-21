@@ -52,8 +52,70 @@ export const fetchContributions = async (username: string) => {
 export const calculateStreak = (weeks: any) => {
   let currentStreak = 0;
   let maxStreak = 0;
-  let lastDate = new Date();
   const days = weeks.flatMap((week: any) => week.contributionDays);
+
+  // Sort days in descending order (most recent first)
+  days.sort(
+    (a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
+  // Get today's date at midnight for comparison
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Check the most recent contribution
+  const mostRecentDay = new Date(days[0].date);
+  mostRecentDay.setHours(0, 0, 0, 0);
+
+  // Calculate the difference in days
+  const daysSinceLastContribution = Math.floor(
+    (today.getTime() - mostRecentDay.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  // If no contribution today or yesterday, streak is broken
+  if (daysSinceLastContribution > 1) {
+    currentStreak = 0;
+  } else {
+    // Count current streak
+    for (let i = 0; i < days.length; i++) {
+      const { date, contributionCount } = days[i];
+      const currentDate = new Date(date);
+      currentDate.setHours(0, 0, 0, 0);
+
+      if (i === 0 && contributionCount > 0) {
+        currentStreak = 1;
+        continue;
+      }
+
+      if (i > 0) {
+        const prevDate = new Date(days[i - 1].date);
+        prevDate.setHours(0, 0, 0, 0);
+
+        const diffDays = Math.floor(
+          (prevDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (diffDays === 1 && contributionCount > 0) {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+    }
+  }
+
+  // Calculate max streak
+  let tempStreak = 0;
+  for (let i = 0; i < days.length; i++) {
+    const { contributionCount } = days[i];
+
+    if (contributionCount > 0) {
+      tempStreak++;
+      maxStreak = Math.max(maxStreak, tempStreak);
+    } else {
+      tempStreak = 0;
+    }
+  }
 
   // For tracking monthly badges
   const now = new Date();
@@ -68,29 +130,9 @@ export const calculateStreak = (weeks: any) => {
   const badges: { month: string; year: number }[] = [];
   const monthlyContributions: Map<string, number> = new Map();
 
-  // Initialize with today's contribution
-  const today = new Date();
-  const mostRecentDay = new Date(days[days.length - 1].date);
-  const isToday = today.toDateString() === mostRecentDay.toDateString();
-
-  // Start counting current streak
-  if (isToday && days[days.length - 1].contributionCount > 0) {
-    currentStreak = 1;
-  }
-
-  // Calculate streaks
   for (let i = days.length - 1; i >= 0; i--) {
     const { date, contributionCount } = days[i];
     const currentDate = new Date(date);
-
-    if (i === days.length - 1) {
-      lastDate = currentDate;
-      continue;
-    }
-
-    const diffDays = Math.ceil(
-      (lastDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
-    );
 
     // Track monthly contributions
     const monthKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}`;
@@ -98,22 +140,7 @@ export const calculateStreak = (weeks: any) => {
       const currentCount = monthlyContributions.get(monthKey) || 0;
       monthlyContributions.set(monthKey, currentCount + 1);
     }
-
-    // Calculate streaks
-    if (diffDays === 1 && contributionCount > 0) {
-      currentStreak++;
-      maxStreak = Math.max(maxStreak, currentStreak);
-    } else if (diffDays > 1) {
-      // Break in streak found
-      maxStreak = Math.max(maxStreak, currentStreak);
-      currentStreak = contributionCount > 0 ? 1 : 0;
-    }
-
-    lastDate = currentDate;
   }
-
-  // Update max streak one final time
-  maxStreak = Math.max(maxStreak, currentStreak);
 
   for (const [monthKey, count] of monthlyContributions.entries()) {
     const [year, month] = monthKey.split("-").map(Number);
