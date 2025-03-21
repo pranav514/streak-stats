@@ -52,7 +52,6 @@ export const fetchContributions = async (username: string) => {
 export const calculateStreak = (weeks: any) => {
   let currentStreak = 0;
   let maxStreak = 0;
-  let tempStreak = 0; // Add temporary streak counter
   let lastDate = new Date();
   const days = weeks.flatMap((week: any) => week.contributionDays);
 
@@ -69,40 +68,52 @@ export const calculateStreak = (weeks: any) => {
   const badges: { month: string; year: number }[] = [];
   const monthlyContributions: Map<string, number> = new Map();
 
+  // Initialize with today's contribution
+  const today = new Date();
+  const mostRecentDay = new Date(days[days.length - 1].date);
+  const isToday = today.toDateString() === mostRecentDay.toDateString();
+
+  // Start counting current streak
+  if (isToday && days[days.length - 1].contributionCount > 0) {
+    currentStreak = 1;
+  }
+
+  // Calculate streaks
   for (let i = days.length - 1; i >= 0; i--) {
     const { date, contributionCount } = days[i];
     const currentDate = new Date(date);
 
     if (i === days.length - 1) {
       lastDate = currentDate;
-    }
-
-    const monthKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}`;
-    if (contributionCount > 0) {
-      const currentCount = monthlyContributions.get(monthKey) || 0;
-      monthlyContributions.set(monthKey, currentCount + 1);
+      continue;
     }
 
     const diffDays = Math.ceil(
       (lastDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24)
     );
 
+    // Track monthly contributions
+    const monthKey = `${currentDate.getFullYear()}-${currentDate.getMonth()}`;
+    if (contributionCount > 0) {
+      const currentCount = monthlyContributions.get(monthKey) || 0;
+      monthlyContributions.set(monthKey, currentCount + 1);
+    }
+
+    // Calculate streaks
     if (diffDays === 1 && contributionCount > 0) {
       currentStreak++;
-      tempStreak++;
-      maxStreak = Math.max(maxStreak, tempStreak);
-    } else if (contributionCount > 0) {
-      currentStreak = 1;
-      tempStreak = 1;
-      maxStreak = Math.max(maxStreak, tempStreak);
-    } else {
-      // Only reset current streak, keep max streak
-      currentStreak = 0;
-      tempStreak = 0;
+      maxStreak = Math.max(maxStreak, currentStreak);
+    } else if (diffDays > 1) {
+      // Break in streak found
+      maxStreak = Math.max(maxStreak, currentStreak);
+      currentStreak = contributionCount > 0 ? 1 : 0;
     }
 
     lastDate = currentDate;
   }
+
+  // Update max streak one final time
+  maxStreak = Math.max(maxStreak, currentStreak);
 
   for (const [monthKey, count] of monthlyContributions.entries()) {
     const [year, month] = monthKey.split("-").map(Number);
